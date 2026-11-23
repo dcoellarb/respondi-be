@@ -1,0 +1,46 @@
+{
+  "name": "respondi-be",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22 <23",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.lambda.json",
+    "build:lambdas": "node scripts/build-lambdas.js",
+    "build:layer": "node scripts/build-node-modules-layer.js",
+    "build:all": "npm run build:layer && npm run build:lambdas",
+    "lint": "tsc --project tsconfig.json --noEmit && tsc --project tsconfig.lambda.json --noEmit",
+    "test": "jest",
+    "synth": "npm run build:all && cdk synth",
+    "synth:only": "cdk synth",
+    "deploy:development": "npm run build:all && cdk deploy RespondiBeStack-development -c env=development --profile aws-respondi --region us-east-2",
+    "deploy:only:development": "cdk deploy RespondiBeStack-development -c env=development --profile aws-respondi --region us-east-2",
+    "deploy:staging": "npm run build:all && dotenv -e .env.staging -- cdk deploy RespondiBeStack-staging -c env=staging --profile aws-respondi --region us-east-2",
+    "deploy:only:staging": "dotenv -e .env.staging -- cdk deploy RespondiBeStack-staging -c env=staging --profile aws-respondi --region us-east-2",
+    "deploy:production": "npm run build:all && dotenv -e .env.production -- cdk deploy RespondiBeStack-production -c env=production --profile aws-respondi --region us-east-2",
+    "deploy:only:production": "dotenv -e .env.production -- cdk deploy RespondiBeStack-production -c env=production --profile aws-respondi --region us-east-2",
+    "destroy:development": "cdk destroy RespondiBeStack-development -c env=development --profile aws-respondi --region us-east-2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.152",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.0",
+    "aws-cdk": "^2.1126.0",
+    "dotenv-cli": "^11.0.0",
+    "fs-extra": "^11.3.2",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.723.0",
+    "aws-cdk-lib": "^2.175.1",
+    "constructs": "^10.4.2",
+    "dotenv": "^17.2.2",
+    "jose": "^6.1.0"
+  },
+  "packageManager": "pnpm@10.25.0"
+}
