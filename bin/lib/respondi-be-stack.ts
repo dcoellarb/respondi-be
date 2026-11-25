@@ -16,6 +16,7 @@ import {
 } from "./lambda-props";
 import { LambdaExecutionRoles } from "./lambda-roles";
 import { NodeModulesLayer } from "./node-modules-layer";
+import { addPlansRoutes } from "./plans-routes";
 import { addSwaggerRoutes } from "./swagger-routes";
 import { WhatsAppWebhookSecret } from "./whatsapp-webhook-secret";
 import { addWhatsAppWebhookRoutes } from "./whatsapp-webhook-routes";
@@ -218,6 +219,21 @@ export class RespondiBeStack extends cdk.Stack {
         "ops/swagger/get",
       ),
     );
+
+    const plansFn = createFn(
+      this,
+      "PlansFunction",
+      {
+        runtime: lambda.Runtime.NODEJS_22_X,
+        handler: "index.handler",
+        timeout: cdk.Duration.seconds(10),
+        role: roles.minimal,
+        environment: { TABLE_NAME: accountTable.table.tableName },
+      },
+      "plans/get",
+    );
+    accountTable.table.grantReadData(plansFn);
+    addPlansRoutes(api.apiResource, plansFn);
 
     new ApiWaf(this, "ApiWaf", {
       envName: props.envName,

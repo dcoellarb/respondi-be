@@ -34,6 +34,7 @@ import {
   productSk,
 } from "./keys";
 import {
+  AccountPlan,
   AddressWrite,
   FaqWrite,
   ProductPage,
@@ -57,6 +58,7 @@ interface ProfileItem {
   phoneE164: string;
   /** @deprecated Kept for existing DynamoDB records; no longer written or returned. */
   whatsappBusinessInUse?: boolean;
+  plan?: AccountPlan;
   contactName: string;
   contactPhoneE164: string | null;
   scheduleMode: ScheduleMode;
@@ -332,28 +334,36 @@ async function replaceProfile(
     contactPhoneE164: input.contactPhone,
     scheduleMode: input.scheduleMode,
     hours,
+    plan: input.plan,
     updatedAt: timestamp,
   };
+
+  let updateExpr =
+    "SET businessName = :businessName, phoneE164 = :phoneE164, contactName = :contactName, contactPhoneE164 = :contactPhoneE164, scheduleMode = :scheduleMode, hours = :hours, updatedAt = :updatedAt REMOVE whatsappBusinessInUse";
+  const exprValues: Record<string, unknown> = {
+    ":businessName": next.businessName,
+    ":phoneE164": next.phoneE164,
+    ":contactName": next.contactName,
+    ":contactPhoneE164": next.contactPhoneE164,
+    ":scheduleMode": next.scheduleMode,
+    ":hours": next.hours,
+    ":updatedAt": next.updatedAt,
+    ":accountId": current.accountId,
+    ":currentPhone": current.phoneE164,
+  };
+  if (input.plan !== undefined) {
+    updateExpr = updateExpr.replace(" REMOVE", ", plan = :plan REMOVE");
+    exprValues[":plan"] = input.plan;
+  }
 
   const items: TransactItem[] = [
     {
       Update: {
         TableName: tableName,
         Key: { PK: current.PK, SK: current.SK },
-        UpdateExpression:
-          "SET businessName = :businessName, phoneE164 = :phoneE164, contactName = :contactName, contactPhoneE164 = :contactPhoneE164, scheduleMode = :scheduleMode, hours = :hours, updatedAt = :updatedAt REMOVE whatsappBusinessInUse",
+        UpdateExpression: updateExpr,
         ConditionExpression: "accountId = :accountId AND phoneE164 = :currentPhone",
-        ExpressionAttributeValues: {
-          ":businessName": next.businessName,
-          ":phoneE164": next.phoneE164,
-          ":contactName": next.contactName,
-          ":contactPhoneE164": next.contactPhoneE164,
-          ":scheduleMode": next.scheduleMode,
-          ":hours": next.hours,
-          ":updatedAt": next.updatedAt,
-          ":accountId": current.accountId,
-          ":currentPhone": current.phoneE164,
-        },
+        ExpressionAttributeValues: exprValues,
       },
     },
   ];
@@ -967,6 +977,7 @@ function profileItem(
     scheduleMode: input.scheduleMode,
     hours:
       input.scheduleMode === "business" ? sanitizeHoursForStorage(input.hours) : [],
+    plan: input.plan,
     faqCount,
     conversationsThisMonth: 0,
     conversationsMonth: utcMonthKey(),
@@ -1177,6 +1188,7 @@ function toPublicProfile(item: ProfileItem): PublicProfile {
     conversationsMonthlyLimit: MAX_CONVERSATIONS_PER_MONTH,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
+    plan: item.plan ?? null,
   };
 }
 

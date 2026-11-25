@@ -1,5 +1,6 @@
 import { MAX_IMAGE_URLS, MAX_SCHEDULE_WINDOWS } from "./keys";
 import {
+  AccountPlan,
   AddressPatch,
   AddressWrite,
   DAYS_OF_WEEK,
@@ -38,6 +39,7 @@ const PROFILE_FIELDS = [
   "contactPhone",
   "scheduleMode",
   "hours",
+  "plan",
 ] as const;
 
 const ADDRESS_FIELDS = [
@@ -136,6 +138,11 @@ export function parseProfilePatch(raw: Record<string, unknown>): Parsed<ProfileP
     if (!hours.ok) return hours;
     patch.hours = hours.value;
   }
+  if (has(raw, "plan")) {
+    const plan = parsePlan(raw.plan);
+    if (!plan.ok) return plan;
+    patch.plan = plan.value;
+  }
   return { ok: true, value: patch };
 }
 
@@ -174,6 +181,7 @@ export function applyProfilePatch(
         patch.contactPhone !== undefined ? patch.contactPhone : current.contactPhone,
       scheduleMode,
       hours,
+      plan: patch.plan ?? current.plan ?? undefined,
     },
   };
 }
@@ -547,6 +555,77 @@ function parsePricePlans(value: unknown): Parsed<PricePlan[]> {
     });
   }
   return { ok: true, value: plans };
+}
+
+function parsePlan(value: unknown): Parsed<AccountPlan> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return fail("plan must be an object", "INVALID_FIELD", { field: "plan" });
+  }
+  const raw = value as Record<string, unknown>;
+  const allowed = [
+    "name",
+    "subtitle",
+    "messagesCap",
+    "addressesCap",
+    "servicesCap",
+    "productsCap",
+    "faqsCap",
+    "price",
+    "frequency",
+  ];
+  const extra = Object.keys(raw).filter((k) => !allowed.includes(k));
+  if (extra.length) return fail("Unknown fields in plan", "UNKNOWN_FIELD", { fields: extra });
+
+  const name = parseRequiredText(raw.name, "plan.name", 80);
+  if (!name.ok) return name;
+
+  const subtitle = parseRequiredText(raw.subtitle, "plan.subtitle", 120);
+  if (!subtitle.ok) return subtitle;
+
+  for (const cap of [
+    "messagesCap",
+    "addressesCap",
+    "servicesCap",
+    "productsCap",
+    "faqsCap",
+  ] as const) {
+    if (
+      typeof raw[cap] !== "number" ||
+      !Number.isInteger(raw[cap] as number) ||
+      (raw[cap] as number) < 0
+    ) {
+      return fail(`plan.${cap} must be a non-negative integer`, "INVALID_FIELD", {
+        field: `plan.${cap}`,
+      });
+    }
+  }
+
+  if (typeof raw.price !== "number" || raw.price < 0) {
+    return fail("plan.price must be a non-negative number", "INVALID_FIELD", {
+      field: "plan.price",
+    });
+  }
+
+  if (raw.frequency !== "monthly" && raw.frequency !== "annual") {
+    return fail("plan.frequency must be monthly or annual", "INVALID_FIELD", {
+      field: "plan.frequency",
+    });
+  }
+
+  return {
+    ok: true,
+    value: {
+      name: name.value,
+      subtitle: subtitle.value,
+      messagesCap: raw.messagesCap as number,
+      addressesCap: raw.addressesCap as number,
+      servicesCap: raw.servicesCap as number,
+      productsCap: raw.productsCap as number,
+      faqsCap: raw.faqsCap as number,
+      price: raw.price as number,
+      frequency: raw.frequency,
+    },
+  };
 }
 
 function hoursForMode(

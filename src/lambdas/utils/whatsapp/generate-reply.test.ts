@@ -181,6 +181,7 @@ describe("generateWhatsAppReply", () => {
         conversationsMonthlyLimit: 100,
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
+        plan: null,
       },
       products: [
         {
@@ -294,6 +295,7 @@ describe("generateWhatsAppReply", () => {
           conversationsMonthlyLimit: 100,
           createdAt: "2026-01-01T00:00:00.000Z",
           updatedAt: "2026-01-01T00:00:00.000Z",
+          plan: null,
         },
         addresses: [],
       },

@@ -33,6 +33,7 @@ DynamoDB single table `RespondiBe-{env}` (`PK`, `SK`, TTL `expiresAt`). The acco
 - `FAQ#` — FAQ (max 10)
 - Short-lived `CONVERSATION#{accountId}#{customerE164}` (SK = creation ISO time) — last 6 WhatsApp turns; `expiresAt` = createdAt + 1 hour
 - Short-lived `BLOCK#{quietE164}#{otherE164}` (SK = `ACTIVE`) — after business B auto-replies to A, blocks A from auto-replying to B for 1 hour
+- `PLANS` (PK = `PLANS`, SK = `PLANS`) — catalog of available subscription plans
 
 Profile tracks `conversationsThisMonth` / `conversationsMonth` (UTC `YYYY-MM`, lazy reset; max 100 new threads/month). Business hours live on the profile or on each address, depending on `scheduleMode`. Do not add RDS or Prisma.
 

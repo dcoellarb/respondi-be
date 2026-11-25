@@ -20,6 +20,9 @@ export const REPLY_BLOCK_TTL_MS = 60 * 60 * 1000;
 /** Max new WhatsApp conversation threads per account per calendar month (UTC). */
 export const MAX_CONVERSATIONS_PER_MONTH = 100;
 
+export const PLANS_PK = "PLANS";
+export const PLANS_SK = "PLANS";
+
 export const MAX_FAQS = 10;
 export const MAX_ADDRESSES = 50;
 export const MAX_PRODUCT_PAGE = 50;

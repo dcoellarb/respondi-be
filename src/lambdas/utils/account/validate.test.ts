@@ -20,6 +20,7 @@ const profile: PublicProfile = {
   conversationsMonthlyLimit: 100,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
+  plan: null,
 };
 
 describe("account validation", () => {

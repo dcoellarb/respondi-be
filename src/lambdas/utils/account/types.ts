@@ -10,6 +10,20 @@ export const DAYS_OF_WEEK = [
 
 export type DayOfWeek = (typeof DAYS_OF_WEEK)[number];
 export type ScheduleMode = "business" | "per_address";
+export type PlanFrequency = "monthly" | "annual";
+
+/** Subscription plan attached to an account. Cap of 0 means unlimited. */
+export interface AccountPlan {
+  name: string;
+  subtitle: string;
+  messagesCap: number;
+  addressesCap: number;
+  servicesCap: number;
+  productsCap: number;
+  faqsCap: number;
+  price: number;
+  frequency: PlanFrequency;
+}
 
 export interface ScheduleWindow {
   dayOfWeek: DayOfWeek;
@@ -36,6 +50,7 @@ export interface PublicProfile {
   conversationsMonthlyLimit: number;
   createdAt: string;
   updatedAt: string;
+  plan: AccountPlan | null;
 }
 
 export interface ProfileWrite {
@@ -45,6 +60,7 @@ export interface ProfileWrite {
   contactPhone: string | null;
   scheduleMode: ScheduleMode;
   hours: ScheduleWindow[];
+  plan?: AccountPlan;
 }
 
 export interface ProfilePatch {
@@ -54,6 +70,7 @@ export interface ProfilePatch {
   contactPhone?: string | null;
   scheduleMode?: ScheduleMode;
   hours?: ScheduleWindow[];
+  plan?: AccountPlan;
 }
 
 export interface PublicAddress {

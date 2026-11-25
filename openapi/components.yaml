@@ -184,6 +184,11 @@ components:
         updatedAt:
           type: string
           format: date-time
+        plan:
+          nullable: true
+          description: Current subscription plan. Null if no plan is set.
+          allOf:
+            - $ref: "#/components/schemas/Plan"
     ProfileWrite:
       type: object
       required: [businessName, phone, contactName, scheduleMode]
@@ -233,6 +238,8 @@ components:
           maxItems: 28
           items:
             $ref: "#/components/schemas/ScheduleWindow"
+        plan:
+          $ref: "#/components/schemas/Plan"
     Address:
       type: object
       required: [id, line1, city, country, hours, createdAt, updatedAt]
@@ -675,6 +682,44 @@ components:
         authProvider:
           type: string
           enum: [email, google]
+    Plan:
+      type: object
+      required: [name, subtitle, messagesCap, addressesCap, servicesCap, productsCap, faqsCap, price, frequency]
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        subtitle:
+          type: string
+          maxLength: 120
+          description: Short human-readable plan description.
+        messagesCap:
+          type: integer
+          minimum: 0
+          description: Monthly message cap. 0 means unlimited.
+        addressesCap:
+          type: integer
+          minimum: 0
+          description: Address limit. 0 means unlimited.
+        servicesCap:
+          type: integer
+          minimum: 0
+          description: Service limit. 0 means unlimited.
+        productsCap:
+          type: integer
+          minimum: 0
+          description: Product limit. 0 means unlimited.
+        faqsCap:
+          type: integer
+          minimum: 0
+          description: FAQ limit. 0 means unlimited.
+        price:
+          type: number
+          minimum: 0
+          description: Subscription price.
+        frequency:
+          type: string
+          enum: [monthly, annual]
     AuthSession:
       type: object
       required: [message, authResponse, user]
