@@ -694,25 +694,40 @@ components:
           maxLength: 120
           description: Short human-readable plan description.
         messagesCap:
-          type: integer
-          minimum: 0
-          description: Monthly message cap. 0 means unlimited.
+          oneOf:
+            - type: integer
+              minimum: 0
+            - type: string
+              enum: [unlimited]
+          description: Monthly message cap. Integer for a hard limit, "unlimited" for no limit.
         addressesCap:
-          type: integer
-          minimum: 0
-          description: Address limit. 0 means unlimited.
+          oneOf:
+            - type: integer
+              minimum: 0
+            - type: string
+              enum: [unlimited]
+          description: Address limit. Integer for a hard limit, "unlimited" for no limit.
         servicesCap:
-          type: integer
-          minimum: 0
-          description: Service limit. 0 means unlimited.
+          oneOf:
+            - type: integer
+              minimum: 0
+            - type: string
+              enum: [unlimited]
+          description: Service limit. Integer for a hard limit, "unlimited" for no limit.
         productsCap:
-          type: integer
-          minimum: 0
-          description: Product limit. 0 means unlimited.
+          oneOf:
+            - type: integer
+              minimum: 0
+            - type: string
+              enum: [unlimited]
+          description: Product limit. Integer for a hard limit, "unlimited" for no limit.
         faqsCap:
-          type: integer
-          minimum: 0
-          description: FAQ limit. 0 means unlimited.
+          oneOf:
+            - type: integer
+              minimum: 0
+            - type: string
+              enum: [unlimited]
+          description: FAQ limit. Integer for a hard limit, "unlimited" for no limit.
         price:
           type: number
           minimum: 0

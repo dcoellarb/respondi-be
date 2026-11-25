@@ -589,14 +589,15 @@ function parsePlan(value: unknown): Parsed<AccountPlan> {
     "productsCap",
     "faqsCap",
   ] as const) {
-    if (
-      typeof raw[cap] !== "number" ||
-      !Number.isInteger(raw[cap] as number) ||
-      (raw[cap] as number) < 0
-    ) {
-      return fail(`plan.${cap} must be a non-negative integer`, "INVALID_FIELD", {
-        field: `plan.${cap}`,
-      });
+    const v = raw[cap];
+    if (v !== "unlimited") {
+      if (typeof v !== "number" || !Number.isInteger(v) || v < 0) {
+        return fail(
+          `plan.${cap} must be a non-negative integer or "unlimited"`,
+          "INVALID_FIELD",
+          { field: `plan.${cap}` },
+        );
+      }
     }
   }
 
@@ -617,11 +618,11 @@ function parsePlan(value: unknown): Parsed<AccountPlan> {
     value: {
       name: name.value,
       subtitle: subtitle.value,
-      messagesCap: raw.messagesCap as number,
-      addressesCap: raw.addressesCap as number,
-      servicesCap: raw.servicesCap as number,
-      productsCap: raw.productsCap as number,
-      faqsCap: raw.faqsCap as number,
+      messagesCap: raw.messagesCap as number | "unlimited",
+      addressesCap: raw.addressesCap as number | "unlimited",
+      servicesCap: raw.servicesCap as number | "unlimited",
+      productsCap: raw.productsCap as number | "unlimited",
+      faqsCap: raw.faqsCap as number | "unlimited",
       price: raw.price as number,
       frequency: raw.frequency,
     },

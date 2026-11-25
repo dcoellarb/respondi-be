@@ -12,15 +12,18 @@ export type DayOfWeek = (typeof DAYS_OF_WEEK)[number];
 export type ScheduleMode = "business" | "per_address";
 export type PlanFrequency = "monthly" | "annual";
 
-/** Subscription plan attached to an account. Cap of 0 means unlimited. */
+/** A cap value: a non-negative integer limit, or "unlimited". */
+export type CapValue = number | "unlimited";
+
+/** Subscription plan attached to an account. */
 export interface AccountPlan {
   name: string;
   subtitle: string;
-  messagesCap: number;
-  addressesCap: number;
-  servicesCap: number;
-  productsCap: number;
-  faqsCap: number;
+  messagesCap: CapValue;
+  addressesCap: CapValue;
+  servicesCap: CapValue;
+  productsCap: CapValue;
+  faqsCap: CapValue;
   price: number;
   frequency: PlanFrequency;
 }
