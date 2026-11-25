@@ -155,6 +155,7 @@
  *                   type: string
  */
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { isAccountError } from "../../../utils/account/errors";
 import { defaultStore } from "../../../utils/account/store";
 import {
   loadAnswerContext,
@@ -325,6 +326,30 @@ export const handler = async (
         console.error(error);
         return webhookError(
           error instanceof Error ? error.message : "Failed to check conversation quota",
+          500,
+        );
+      }
+    }
+
+    // Message cap: each reply counts against the plan's messagesCap.
+    // Simulation harness skips so FE tests are not blocked by plan restrictions.
+    if (!isSimulation) {
+      try {
+        const msgQuota = await defaultStore().consumeMessageQuota(accountId);
+        if (!msgQuota.allowed) {
+          return webhookError(
+            `Monthly message limit reached (${msgQuota.count}/${msgQuota.cap} in ${msgQuota.year}-${String(msgQuota.month).padStart(2, "0")})`,
+            429,
+          );
+        }
+      } catch (error) {
+        // NO_PLAN → no active subscription
+        if (isAccountError(error) && error.code === "NO_PLAN") {
+          return webhookError("No active subscription plan", 403);
+        }
+        console.error(error);
+        return webhookError(
+          error instanceof Error ? error.message : "Failed to check message quota",
           500,
         );
       }

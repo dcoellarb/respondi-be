@@ -182,6 +182,7 @@ describe("generateWhatsAppReply", () => {
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
         plan: null,
+        messagesCount: [],
       },
       products: [
         {
@@ -296,6 +297,7 @@ describe("generateWhatsAppReply", () => {
           createdAt: "2026-01-01T00:00:00.000Z",
           updatedAt: "2026-01-01T00:00:00.000Z",
           plan: null,
+          messagesCount: [],
         },
         addresses: [],
       },

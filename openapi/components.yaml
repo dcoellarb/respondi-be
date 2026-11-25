@@ -189,6 +189,22 @@ components:
           description: Current subscription plan. Null if no plan is set.
           allOf:
             - $ref: "#/components/schemas/Plan"
+        messagesCount:
+          type: array
+          description: Per-month message usage counters.
+          items:
+            type: object
+            required: [year, month, count]
+            properties:
+              year:
+                type: integer
+              month:
+                type: integer
+                minimum: 1
+                maximum: 12
+              count:
+                type: integer
+                minimum: 0
     ProfileWrite:
       type: object
       required: [businessName, phone, contactName, scheduleMode]
@@ -239,7 +255,10 @@ components:
           items:
             $ref: "#/components/schemas/ScheduleWindow"
         plan:
-          $ref: "#/components/schemas/Plan"
+          nullable: true
+          description: Set to null to unsubscribe (remove plan from account).
+          allOf:
+            - $ref: "#/components/schemas/Plan"
     Address:
       type: object
       required: [id, line1, city, country, hours, createdAt, updatedAt]

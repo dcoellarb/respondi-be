@@ -37,6 +37,7 @@ import {
   AccountPlan,
   AddressWrite,
   FaqWrite,
+  MessageCount,
   ProductPage,
   ProductWrite,
   ProfileWrite,
@@ -67,6 +68,7 @@ interface ProfileItem {
   /** New conversation threads in conversationsMonth (UTC YYYY-MM). */
   conversationsThisMonth?: number;
   conversationsMonth?: string;
+  messagesCount?: MessageCount[];
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +78,14 @@ export interface ConversationQuotaResult {
   count: number;
   month: string;
   limit: number;
+}
+
+export interface MessageQuotaResult {
+  allowed: boolean;
+  count: number;
+  year: number;
+  month: number;
+  cap: number | "unlimited";
 }
 
 interface AddressItem {
@@ -170,6 +180,11 @@ export interface AccountStore {
    * Lazy-resets the counter when the calendar month rolls over.
    */
   consumeConversationQuota(accountId: string): Promise<ConversationQuotaResult>;
+  /**
+   * Atomically increments the current month's message count on the profile.
+   * Returns whether the message is within the plan's messagesCap.
+   */
+  consumeMessageQuota(accountId: string): Promise<MessageQuotaResult>;
 }
 
 export function createStore(
@@ -184,6 +199,8 @@ export function createStore(
       saveProfile(doc, tableName, accountId, email, input),
     consumeConversationQuota: (accountId) =>
       consumeConversationQuota(doc, tableName, accountId),
+    consumeMessageQuota: (accountId) =>
+      consumeMessageQuota(doc, tableName, accountId),
     listAddresses: (accountId) => listAddresses(doc, tableName, accountId),
     createAddress: (accountId, input) => createAddress(doc, tableName, accountId, input),
     getAddress: (accountId, addressId) => getAddress(doc, tableName, accountId, addressId),
@@ -334,7 +351,7 @@ async function replaceProfile(
     contactPhoneE164: input.contactPhone,
     scheduleMode: input.scheduleMode,
     hours,
-    plan: input.plan,
+    plan: input.plan === null ? undefined : input.plan,
     updatedAt: timestamp,
   };
 
@@ -351,7 +368,10 @@ async function replaceProfile(
     ":accountId": current.accountId,
     ":currentPhone": current.phoneE164,
   };
-  if (input.plan !== undefined) {
+  if (input.plan === null) {
+    // Unsubscribe: remove plan attribute from DynamoDB
+    updateExpr = updateExpr.replace("REMOVE whatsappBusinessInUse", "REMOVE whatsappBusinessInUse, plan");
+  } else if (input.plan !== undefined) {
     updateExpr = updateExpr.replace(" REMOVE", ", plan = :plan REMOVE");
     exprValues[":plan"] = input.plan;
   }
@@ -977,7 +997,7 @@ function profileItem(
     scheduleMode: input.scheduleMode,
     hours:
       input.scheduleMode === "business" ? sanitizeHoursForStorage(input.hours) : [],
-    plan: input.plan,
+    plan: input.plan === null ? undefined : input.plan,
     faqCount,
     conversationsThisMonth: 0,
     conversationsMonth: utcMonthKey(),
@@ -1079,6 +1099,94 @@ async function consumeConversationQuota(
 
   throw new AccountError(
     "Failed to update conversation quota",
+    500,
+    "INTERNAL_ERROR",
+  );
+}
+
+/**
+ * Atomically increments the current month's message count on the profile.
+ * Uses an optimistic-lock retry loop similar to consumeConversationQuota.
+ * The messagesCount array stores per-month counts: [{year, month, count}, ...].
+ * We keep only the current month entry (old months are pruned on write).
+ */
+async function consumeMessageQuota(
+  doc: DynamoDBDocumentClient,
+  tableName: string,
+  accountId: string,
+): Promise<MessageQuotaResult> {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth() + 1; // 1-based
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const item = await getProfileItem(doc, tableName, accountId);
+    if (!item) {
+      throw new AccountError("Account profile not found", 404, "PROFILE_NOT_FOUND");
+    }
+
+    if (!item.plan) {
+      throw new AccountError("No active plan", 403, "NO_PLAN");
+    }
+
+    const cap = item.plan.messagesCap;
+    const existing = (item.messagesCount ?? []).find(
+      (mc) => mc.year === year && mc.month === month,
+    );
+    const current = existing ? existing.count : 0;
+
+    if (cap !== "unlimited" && current >= cap) {
+      return { allowed: false, count: current, year, month, cap };
+    }
+
+    const next = current + 1;
+    // Build updated array: replace current month entry, drop old months
+    const updated: MessageCount[] = [{ year, month, count: next }];
+
+    try {
+      if (existing) {
+        // Current month entry exists — CAS on its count
+        await doc.send(
+          new UpdateCommand({
+            TableName: tableName,
+            Key: { PK: accountPk(accountId), SK: PROFILE_SK },
+            UpdateExpression:
+              "SET messagesCount = :updated, updatedAt = :updatedAt",
+            ConditionExpression:
+              "attribute_exists(PK) AND size(messagesCount) > :zero",
+            ExpressionAttributeValues: {
+              ":updated": updated,
+              ":updatedAt": new Date().toISOString(),
+              ":zero": 0,
+            },
+          }),
+        );
+      } else {
+        // No current month entry yet
+        await doc.send(
+          new UpdateCommand({
+            TableName: tableName,
+            Key: { PK: accountPk(accountId), SK: PROFILE_SK },
+            UpdateExpression:
+              "SET messagesCount = :updated, updatedAt = :updatedAt",
+            ConditionExpression:
+              "attribute_exists(PK) AND (attribute_not_exists(messagesCount) OR size(messagesCount) = :zero)",
+            ExpressionAttributeValues: {
+              ":updated": updated,
+              ":updatedAt": new Date().toISOString(),
+              ":zero": 0,
+            },
+          }),
+        );
+      }
+      return { allowed: true, count: next, year, month, cap };
+    } catch (error) {
+      if (!isConditionalFailure(error)) rethrowAccountOrDynamo(error);
+    }
+  }
+
+  throw new AccountError(
+    "Failed to update message quota",
     500,
     "INTERNAL_ERROR",
   );
@@ -1189,6 +1297,7 @@ function toPublicProfile(item: ProfileItem): PublicProfile {
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
     plan: item.plan ?? null,
+    messagesCount: item.messagesCount ?? [],
   };
 }
 

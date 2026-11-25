@@ -121,7 +121,8 @@ function event(
 describe("POST /webhooks/whatsapp", () => {
   const findAccountIdByPhone = jest.fn();
   const consumeConversationQuota = jest.fn();
-  const store = { findAccountIdByPhone, consumeConversationQuota };
+  const consumeMessageQuota = jest.fn();
+  const store = { findAccountIdByPhone, consumeConversationQuota, consumeMessageQuota };
 
   beforeEach(() => {
     (getWhatsAppWebhookSecrets as jest.Mock).mockResolvedValue({
@@ -141,6 +142,14 @@ describe("POST /webhooks/whatsapp", () => {
       count: 1,
       month: "2026-11",
       limit: 100,
+    });
+    consumeMessageQuota.mockReset();
+    consumeMessageQuota.mockResolvedValue({
+      allowed: true,
+      count: 1,
+      year: 2026,
+      month: 11,
+      cap: 500,
     });
     (defaultStore as jest.Mock).mockReturnValue(store);
     (classifyBusinessIntent as jest.Mock).mockReset();
@@ -292,6 +301,7 @@ describe("POST /webhooks/whatsapp", () => {
     );
     expect(sendWhatsAppTextMessage).not.toHaveBeenCalled();
     expect(consumeConversationQuota).not.toHaveBeenCalled();
+    expect(consumeMessageQuota).not.toHaveBeenCalled();
   });
 
   it("skips signature verification for simulation requests with a real appSecret", async () => {

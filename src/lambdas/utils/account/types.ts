@@ -28,6 +28,12 @@ export interface AccountPlan {
   frequency: PlanFrequency;
 }
 
+export interface MessageCount {
+  year: number;
+  month: number;
+  count: number;
+}
+
 export interface ScheduleWindow {
   dayOfWeek: DayOfWeek;
   start: string;
@@ -54,6 +60,7 @@ export interface PublicProfile {
   createdAt: string;
   updatedAt: string;
   plan: AccountPlan | null;
+  messagesCount: MessageCount[];
 }
 
 export interface ProfileWrite {
@@ -63,7 +70,7 @@ export interface ProfileWrite {
   contactPhone: string | null;
   scheduleMode: ScheduleMode;
   hours: ScheduleWindow[];
-  plan?: AccountPlan;
+  plan?: AccountPlan | null;
 }
 
 export interface ProfilePatch {
@@ -73,7 +80,7 @@ export interface ProfilePatch {
   contactPhone?: string | null;
   scheduleMode?: ScheduleMode;
   hours?: ScheduleWindow[];
-  plan?: AccountPlan;
+  plan?: AccountPlan | null;
 }
 
 export interface PublicAddress {

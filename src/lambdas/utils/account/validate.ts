@@ -139,9 +139,13 @@ export function parseProfilePatch(raw: Record<string, unknown>): Parsed<ProfileP
     patch.hours = hours.value;
   }
   if (has(raw, "plan")) {
-    const plan = parsePlan(raw.plan);
-    if (!plan.ok) return plan;
-    patch.plan = plan.value;
+    if (raw.plan === null) {
+      patch.plan = null;
+    } else {
+      const plan = parsePlan(raw.plan);
+      if (!plan.ok) return plan;
+      patch.plan = plan.value;
+    }
   }
   return { ok: true, value: patch };
 }
@@ -181,7 +185,7 @@ export function applyProfilePatch(
         patch.contactPhone !== undefined ? patch.contactPhone : current.contactPhone,
       scheduleMode,
       hours,
-      plan: patch.plan ?? current.plan ?? undefined,
+      plan: patch.plan !== undefined ? patch.plan : (current.plan ?? undefined),
     },
   };
 }
