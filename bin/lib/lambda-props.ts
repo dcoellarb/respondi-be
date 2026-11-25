@@ -41,6 +41,49 @@ export function createFn(
   });
 }
 
+/** Amazon Nova Micro US cross-region profile — fast/cheap binary classification. */
+export const WHATSAPP_BUSINESS_INTENT_MODEL_ID = "us.amazon.nova-micro-v1:0";
+
+/** Amazon Nova Pro US cross-region profile — reply generation. */
+export const WHATSAPP_ANSWER_MODEL_ID = "us.amazon.nova-pro-v1:0";
+
+export function createWebhookLambdaProps(input: {
+  role: iam.IRole;
+  secretName: string;
+  tableName: string;
+}): LambdaBaseProps {
+  return {
+    runtime: lambda.Runtime.NODEJS_22_X,
+    handler: "index.handler",
+    timeout: cdk.Duration.seconds(5),
+    memorySize: 256,
+    role: input.role,
+    environment: {
+      WHATSAPP_WEBHOOK_SECRET_NAME: input.secretName,
+      TABLE_NAME: input.tableName,
+      BEDROCK_MODEL_ID: WHATSAPP_BUSINESS_INTENT_MODEL_ID,
+      BEDROCK_ANSWER_MODEL_ID: WHATSAPP_ANSWER_MODEL_ID,
+    },
+  };
+}
+
+export function createAccountLambdaProps(input: {
+  role: iam.IRole;
+  tableName: string;
+  userPoolId: string;
+}): LambdaBaseProps {
+  return {
+    runtime: lambda.Runtime.NODEJS_22_X,
+    handler: "index.handler",
+    timeout: cdk.Duration.seconds(10),
+    role: input.role,
+    environment: {
+      TABLE_NAME: input.tableName,
+      USER_POOL_ID: input.userPoolId,
+    },
+  };
+}
+
 export function createAuthLambdaProps(ctx: LambdaPropsContext): LambdaBaseProps {
   return {
     runtime: lambda.Runtime.NODEJS_22_X,

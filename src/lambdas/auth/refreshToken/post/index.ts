@@ -2,9 +2,30 @@
  * @openapi
  * /auth/refresh:
  *   post:
+ *     operationId: refreshToken
  *     summary: Exchange a refresh token for new tokens
- *     tags:
- *       - Auth
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [refreshToken]
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *         description: Tokens refreshed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/RefreshSession"
+ *       "400":
+ *         $ref: "#/components/responses/BadRequest"
+ *       "401":
+ *         $ref: "#/components/responses/Unauthorized"
  */
 import {
   CognitoIdentityProviderClient,

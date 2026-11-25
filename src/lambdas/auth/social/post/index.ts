@@ -2,10 +2,38 @@
  * @openapi
  * /auth/social:
  *   post:
+ *     operationId: socialSignIn
  *     summary: Sign in with a Google ID token
  *     description: Verifies the Google token, finds or creates the Cognito user, and returns Cognito tokens. An email that already belongs to a password account is rejected and is not linked.
- *     tags:
- *       - Auth
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [provider, idToken]
+ *             properties:
+ *               provider:
+ *                 type: string
+ *                 enum: [google]
+ *               idToken:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *         description: Signed in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/SocialAuthSession"
+ *       "400":
+ *         $ref: "#/components/responses/BadRequest"
+ *       "409":
+ *         $ref: "#/components/responses/Conflict"
  */
 import { randomBytes } from "crypto";
 import {

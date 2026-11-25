@@ -2,10 +2,19 @@
  * @openapi
  * /auth/signout:
  *   post:
+ *     operationId: signOut
  *     summary: Sign out the current access token
  *     description: Requires Authorization Bearer access token. Invalidates that user's Cognito sessions.
- *     tags:
- *       - Auth
+ *     tags: [Auth]
+ *     responses:
+ *       "200":
+ *         description: Signed out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Message"
+ *       "401":
+ *         $ref: "#/components/responses/Unauthorized"
  */
 import {
   CognitoIdentityProviderClient,

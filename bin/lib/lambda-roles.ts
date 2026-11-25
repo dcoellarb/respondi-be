@@ -25,6 +25,8 @@ function createBasicLambdaRole(
 export class LambdaExecutionRoles extends Construct {
   public readonly authCognito: iam.Role;
   public readonly minimal: iam.Role;
+  public readonly accountData: iam.Role;
+  public readonly webhook: iam.Role;
 
   constructor(scope: Construct, id: string, props: LambdaExecutionRolesProps) {
     super(scope, id);
@@ -64,6 +66,46 @@ export class LambdaExecutionRoles extends Construct {
       this,
       "MinimalLambdaRole",
       "CloudWatch logs only (Cognito triggers)",
+    );
+
+    this.accountData = createBasicLambdaRole(
+      this,
+      "AccountDataLambdaRole",
+      "Respondi account profile, catalog, and FAQs",
+    );
+    this.accountData.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["cognito-idp:AdminGetUser"],
+        resources: [userPoolArn],
+      }),
+    );
+
+    this.webhook = createBasicLambdaRole(
+      this,
+      "WebhookLambdaRole",
+      "Public WhatsApp webhook (signature verified in code)",
+    );
+
+    // Classifier (Nova Micro) + answer model (Nova Pro) via US inference profiles.
+    this.webhook.addToPolicy(
+      new iam.PolicyStatement({
+        sid: "BedrockWhatsAppModels",
+        actions: [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream",
+          "bedrock:GetInferenceProfile",
+        ],
+        resources: [
+          `arn:aws:bedrock:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:inference-profile/us.amazon.nova-micro-v1:0`,
+          "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0",
+          "arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-micro-v1:0",
+          "arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-micro-v1:0",
+          `arn:aws:bedrock:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:inference-profile/us.amazon.nova-pro-v1:0`,
+          "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-pro-v1:0",
+          "arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-pro-v1:0",
+          "arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-pro-v1:0",
+        ],
+      }),
     );
   }
 }

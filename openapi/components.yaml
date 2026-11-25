@@ -1,0 +1,710 @@
+components:
+  securitySchemes:
+    CognitoAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Cognito access token. The account id is the token subject and is never accepted in the path, query, or body.
+  parameters:
+    AddressId:
+      name: addressId
+      in: path
+      required: true
+      schema:
+        type: string
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: string
+    FaqId:
+      name: faqId
+      in: path
+      required: true
+      schema:
+        type: string
+    ProductLimit:
+      name: limit
+      in: query
+      required: false
+      description: Page size. Defaults to 20. Maximum is 50.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+    ProductCursor:
+      name: cursor
+      in: query
+      required: false
+      description: nextCursor from the previous page.
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: The request body or query is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: The access token is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: The account profile or record was not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Conflict:
+      description: The write conflicts with an existing phone number, FAQ limit, or concurrent update.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    TooManyRequests:
+      description: Too many attempts.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    InternalError:
+      description: Unexpected server error.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+        missingFields:
+          type: array
+          items:
+            type: string
+        fields:
+          type: array
+          items:
+            type: string
+    ScheduleWindow:
+      type: object
+      required: [dayOfWeek, start, end]
+      properties:
+        dayOfWeek:
+          type: string
+          enum: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+        start:
+          type: string
+          description: Local time, HH:mm. Must be before end on the same day.
+          example: "09:00"
+        end:
+          type: string
+          example: "17:00"
+        productId:
+          type: string
+          nullable: true
+          description: Optional service id for this window. Null or omitted means the window applies to all services.
+    Profile:
+      type: object
+      required:
+        - accountId
+        - email
+        - businessName
+        - phone
+        - whatsappBusinessInUse
+        - contactName
+        - scheduleMode
+        - hours
+        - conversationsThisMonth
+        - conversationsMonth
+        - conversationsMonthlyLimit
+        - createdAt
+        - updatedAt
+      properties:
+        accountId:
+          type: string
+          readOnly: true
+          description: Cognito subject of the signed-in user.
+        email:
+          type: string
+          format: email
+          readOnly: true
+          description: Copied from Cognito. Writes that send email are rejected.
+        businessName:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          description: E.164 business number used to match incoming WhatsApp messages.
+          example: "+15551234567"
+        whatsappBusinessInUse:
+          type: boolean
+        contactName:
+          type: string
+          maxLength: 120
+        contactPhone:
+          type: string
+          nullable: true
+          description: Optional contact number in E.164. This number is not used to match WhatsApp messages.
+        scheduleMode:
+          type: string
+          enum: [business, per_address]
+        hours:
+          type: array
+          maxItems: 28
+          description: Business-wide hours. Always empty when scheduleMode is per_address.
+          items:
+            $ref: "#/components/schemas/ScheduleWindow"
+        conversationsThisMonth:
+          type: integer
+          minimum: 0
+          readOnly: true
+          description: New WhatsApp conversation threads started in conversationsMonth (UTC). Lazily resets on month change.
+        conversationsMonth:
+          type: string
+          readOnly: true
+          description: UTC calendar month key `YYYY-MM` for the conversation counter.
+          example: "2026-11"
+        conversationsMonthlyLimit:
+          type: integer
+          readOnly: true
+          description: Max new conversation threads allowed per UTC month.
+          example: 100
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProfileWrite:
+      type: object
+      required: [businessName, phone, whatsappBusinessInUse, contactName, scheduleMode]
+      description: Email and account id are not accepted. When scheduleMode is business, hours is required. When it is per_address, hours must be omitted or empty.
+      properties:
+        businessName:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          example: "+15551234567"
+        whatsappBusinessInUse:
+          type: boolean
+        contactName:
+          type: string
+          maxLength: 120
+        contactPhone:
+          type: string
+          nullable: true
+        scheduleMode:
+          type: string
+          enum: [business, per_address]
+        hours:
+          type: array
+          maxItems: 28
+          items:
+            $ref: "#/components/schemas/ScheduleWindow"
+    ProfilePatch:
+      type: object
+      minProperties: 1
+      description: At least one field is required. Switching scheduleMode to business requires hours.
+      properties:
+        businessName:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+        whatsappBusinessInUse:
+          type: boolean
+        contactName:
+          type: string
+          maxLength: 120
+        contactPhone:
+          type: string
+          nullable: true
+        scheduleMode:
+          type: string
+          enum: [business, per_address]
+        hours:
+          type: array
+          maxItems: 28
+          items:
+            $ref: "#/components/schemas/ScheduleWindow"
+    Address:
+      type: object
+      required: [id, line1, city, country, hours, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+          nullable: true
+          maxLength: 80
+        line1:
+          type: string
+          maxLength: 200
+        line2:
+          type: string
+          nullable: true
+          maxLength: 200
+        city:
+          type: string
+          maxLength: 100
+        region:
+          type: string
+          nullable: true
+          maxLength: 80
+        postalCode:
+          type: string
+          nullable: true
+          maxLength: 20
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code.
+          example: EC
+        hours:
+          type: array
+          description: Used only when the profile scheduleMode is per_address. Empty when hours belong on the business.
+          items:
+            $ref: "#/components/schemas/ScheduleWindow"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AddressWrite:
+      type: object
+      required: [line1, city, country]
+      properties:
+        label:
+          type: string
+          nullable: true
+          maxLength: 80
+        line1:
+          type: string
+          maxLength: 200
+        line2:
+          type: string
+          nullable: true
+          maxLength: 200
+        city:
+          type: string
+          maxLength: 100
+        region:
+          type: string
+          nullable: true
+          maxLength: 80
+        postalCode:
+          type: string
+          nullable: true
+          maxLength: 20
+        country:
+          type: string
+          example: EC
+        hours:
+          type: array
+          maxItems: 28
+          items:
+            $ref: "#/components/schemas/ScheduleWindow"
+    AddressPatch:
+      type: object
+      minProperties: 1
+      properties:
+        label:
+          type: string
+          nullable: true
+        line1:
+          type: string
+        line2:
+          type: string
+          nullable: true
+        city:
+          type: string
+        region:
+          type: string
+          nullable: true
+        postalCode:
+          type: string
+          nullable: true
+        country:
+          type: string
+        hours:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScheduleWindow"
+    AddressList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Address"
+    PricePlan:
+      type: object
+      description: Named price option for a service (for example Mensual or 8 clases).
+      required: [name, priceMinor]
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        priceMinor:
+          type: integer
+          minimum: 0
+          description: Price in minor currency units. 1500 with currency USD is 15.00.
+        rules:
+          type: string
+          nullable: true
+          maxLength: 2000
+          description: Optional AI guidance for this plan price (discounts, conditions, extras).
+    Product:
+      type: object
+      required: [id, name, priceMinor, currency, imageUrls, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          maxLength: 160
+        description:
+          type: string
+          nullable: true
+          maxLength: 4000
+        kind:
+          type: string
+          enum: [product, service]
+          description: Catalog item kind. Services can be linked to schedule windows.
+        priceMinor:
+          type: integer
+          minimum: 0
+          description: For products, unit price. For services, usually the lowest plan price. 1500 with currency USD is 15.00.
+        priceRules:
+          type: string
+          nullable: true
+          maxLength: 2000
+          description: Optional AI guidance for a product unit price (discounts, conditions).
+        pricingRules:
+          type: string
+          nullable: true
+          maxLength: 2000
+          description: Optional service-wide AI guidance that applies across plans.
+        plans:
+          type: array
+          maxItems: 10
+          description: Named plans for services. Empty for products.
+          items:
+            $ref: "#/components/schemas/PricePlan"
+        currency:
+          type: string
+          description: ISO 4217 code. Stored uppercase.
+          example: USD
+        imageUrls:
+          type: array
+          maxItems: 8
+          items:
+            type: string
+            format: uri
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ProductWrite:
+      type: object
+      required: [name, priceMinor, currency]
+      properties:
+        name:
+          type: string
+          maxLength: 160
+        description:
+          type: string
+          nullable: true
+          maxLength: 4000
+        kind:
+          type: string
+          enum: [product, service]
+          description: Catalog item kind. Defaults to service when omitted.
+        priceMinor:
+          type: integer
+          minimum: 0
+          description: For products, unit price. For services, usually the lowest plan price.
+        priceRules:
+          type: string
+          nullable: true
+          maxLength: 2000
+          description: Optional AI guidance for a product unit price (discounts, conditions).
+        pricingRules:
+          type: string
+          nullable: true
+          maxLength: 2000
+          description: Optional service-wide AI guidance that applies across plans.
+        plans:
+          type: array
+          maxItems: 10
+          description: Named plans for services. Empty for products. Defaults to [].
+          items:
+            $ref: "#/components/schemas/PricePlan"
+        currency:
+          type: string
+          example: USD
+        imageUrls:
+          type: array
+          maxItems: 8
+          description: Defaults to [] when omitted. Must be https URLs.
+          items:
+            type: string
+            format: uri
+    ProductPatch:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          enum: [product, service]
+          description: Catalog item kind. Services can be linked to schedule windows.
+        priceMinor:
+          type: integer
+          minimum: 0
+        priceRules:
+          type: string
+          nullable: true
+          maxLength: 2000
+          description: Optional AI guidance for a product unit price (discounts, conditions).
+        pricingRules:
+          type: string
+          nullable: true
+          maxLength: 2000
+          description: Optional service-wide AI guidance that applies across plans.
+        plans:
+          type: array
+          maxItems: 10
+          description: Named plans for services. Empty for products.
+          items:
+            $ref: "#/components/schemas/PricePlan"
+        currency:
+          type: string
+        imageUrls:
+          type: array
+          maxItems: 8
+          items:
+            type: string
+            format: uri
+    ProductPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        nextCursor:
+          type: string
+          nullable: true
+          description: Pass this value as the cursor query parameter to read the next page. Null on the last page.
+    Faq:
+      type: object
+      required: [id, question, answer, sortOrder, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        question:
+          type: string
+          maxLength: 500
+        answer:
+          type: string
+          maxLength: 4000
+        sortOrder:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    FaqCreate:
+      type: object
+      required: [question, answer]
+      properties:
+        question:
+          type: string
+          maxLength: 500
+        answer:
+          type: string
+          maxLength: 4000
+        sortOrder:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          description: Defaults to the current FAQ count so new FAQs append to the list.
+    FaqReplace:
+      type: object
+      required: [question, answer, sortOrder]
+      properties:
+        question:
+          type: string
+          maxLength: 500
+        answer:
+          type: string
+          maxLength: 4000
+        sortOrder:
+          type: integer
+          minimum: 0
+          maximum: 10000
+    FaqPatch:
+      type: object
+      minProperties: 1
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+        sortOrder:
+          type: integer
+          minimum: 0
+          maximum: 10000
+    FaqList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Faq"
+    WhatsAppConnectRequest:
+      type: object
+      required: [code, wabaId, phoneNumberId]
+      properties:
+        code:
+          type: string
+          description: Exchangeable token code from FB.login authResponse (expires in ~30s).
+        wabaId:
+          type: string
+          description: Messaging account / WABA id from the WA_EMBEDDED_SIGNUP session event.
+        phoneNumberId:
+          type: string
+          description: Cloud API phone number id from the WA_EMBEDDED_SIGNUP session event.
+        pin:
+          type: string
+          pattern: "^[0-9]{6}$"
+          description: Two-step verification PIN. Required unless skipRegister is true.
+        skipRegister:
+          type: boolean
+          description: Set true for WhatsApp Business app coexistence (phone already registered).
+    WhatsAppConnection:
+      type: object
+      required: [connected, wabaId, phoneNumberId, phoneE164, connectedAt, updatedAt]
+      properties:
+        connected:
+          type: boolean
+          enum: [true]
+        wabaId:
+          type: string
+        phoneNumberId:
+          type: string
+        phoneE164:
+          type: string
+          description: Normalized display phone from Meta; also written to the account profile.
+        connectedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    WhatsAppConnectionStatus:
+      oneOf:
+        - $ref: "#/components/schemas/WhatsAppConnection"
+        - type: object
+          required: [connected]
+          properties:
+            connected:
+              type: boolean
+              enum: [false]
+    Deleted:
+      type: object
+      required: [deleted]
+      properties:
+        deleted:
+          type: boolean
+          enum: [true]
+    Message:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+    AuthTokens:
+      type: object
+      required: [AccessToken, IdToken]
+      description: Cognito token field names are returned as issued.
+      properties:
+        AccessToken:
+          type: string
+        IdToken:
+          type: string
+        RefreshToken:
+          type: string
+        ExpiresIn:
+          type: integer
+        TokenType:
+          type: string
+    AuthUser:
+      type: object
+      required: [cognitoId, email, authProvider]
+      properties:
+        cognitoId:
+          type: string
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        authProvider:
+          type: string
+          enum: [email, google]
+    AuthSession:
+      type: object
+      required: [message, authResponse, user]
+      properties:
+        message:
+          type: string
+        authResponse:
+          $ref: "#/components/schemas/AuthTokens"
+        user:
+          $ref: "#/components/schemas/AuthUser"
+    SocialAuthSession:
+      allOf:
+        - $ref: "#/components/schemas/AuthSession"
+        - type: object
+          required: [accountCreated]
+          properties:
+            accountCreated:
+              type: boolean
+    RefreshSession:
+      type: object
+      required: [message, authResponse]
+      properties:
+        message:
+          type: string
+        authResponse:
+          $ref: "#/components/schemas/AuthTokens"

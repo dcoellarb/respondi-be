@@ -2,9 +2,35 @@
  * @openapi
  * /auth/signin:
  *   post:
+ *     operationId: signin
  *     summary: Sign in with email and password
- *     tags:
- *       - Auth
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *         description: Signed in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/AuthSession"
+ *       "400":
+ *         $ref: "#/components/responses/BadRequest"
+ *       "401":
+ *         $ref: "#/components/responses/Unauthorized"
+ *       "429":
+ *         $ref: "#/components/responses/TooManyRequests"
  */
 import {
   CognitoIdentityProviderClient,

@@ -93,6 +93,23 @@ function buildLambdas() {
     console.log(`   ${lambda.name}`);
   }
 
+  const swaggerOpenapiSrc = path.join(
+    SRC_DIR,
+    "ops/swagger/get/openapi.json",
+  );
+  const swaggerOpenapiDist = path.join(
+    DIST_LAMBDAS_DIR,
+    "ops/swagger/get/openapi.json",
+  );
+  if (fs.existsSync(swaggerOpenapiSrc)) {
+    fs.copySync(swaggerOpenapiSrc, swaggerOpenapiDist);
+    console.log("   Copied openapi.json into ops/swagger/get");
+  } else {
+    throw new Error(
+      `Missing ${swaggerOpenapiSrc}. Run pnpm run openapi:generate first.`,
+    );
+  }
+
   const distUtilsPath = path.join(DIST_LAMBDAS_DIR, "utils");
   if (fs.existsSync(distUtilsPath)) {
     fs.removeSync(distUtilsPath);

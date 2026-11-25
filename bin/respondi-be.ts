@@ -22,12 +22,14 @@ const envsToCreate: readonly EnvName[] = envContext
   ? [envContext as EnvName]
   : environments;
 
-const account = process.env.CDK_DEFAULT_ACCOUNT;
-const region = process.env.CDK_DEFAULT_REGION || "us-east-2";
+// Same account and region as milos-club-be. Stacks stay RespondiBeStack-*,
+// so deploys do not update MilosClubBeStack-*.
+const account = "725921554236";
+const region = "us-east-2";
 
 envsToCreate.forEach((env) => {
   new RespondiBeStack(app, `${stackName}-${env}`, {
-    env: account ? { account, region } : undefined,
+    env: { account, region },
     tags: {
       Environment: env,
       Application: "Respondi",

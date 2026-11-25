@@ -26,7 +26,22 @@ export class ApiGateway extends Construct {
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: ["Content-Type", "Authorization"],
+        allowHeaders: ["Content-Type", "Authorization", "X-Hub-Signature-256"],
+      },
+      deployOptions: {
+        stageName: "prod",
+        throttlingRateLimit: 100,
+        throttlingBurstLimit: 200,
+        methodOptions: {
+          "/api/webhooks/whatsapp/GET": {
+            throttlingRateLimit: 10,
+            throttlingBurstLimit: 20,
+          },
+          "/api/webhooks/whatsapp/POST": {
+            throttlingRateLimit: 25,
+            throttlingBurstLimit: 50,
+          },
+        },
       },
     });
 

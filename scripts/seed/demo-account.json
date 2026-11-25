@@ -1,0 +1,269 @@
+{
+  "demoUser": {
+    "email": "demo@respondi.live",
+    "password": "Demo1989!",
+    "givenName": "Demo",
+    "familyName": "Respondi",
+    "phoneE164": "+593980000000"
+  },
+  "profile": {
+    "businessName": "CircuitFit",
+    "whatsappBusinessInUse": true,
+    "contactName": "CircuitFit Demo",
+    "scheduleMode": "business",
+    "hours": [
+      {
+        "dayOfWeek": "monday",
+        "start": "06:00",
+        "end": "10:00",
+        "productId": "mwtktb1z-918f33f9ba95"
+      },
+      {
+        "dayOfWeek": "monday",
+        "start": "10:00",
+        "end": "11:00",
+        "productId": "mwtlmmbq-15e96e28afba"
+      },
+      {
+        "dayOfWeek": "monday",
+        "start": "16:00",
+        "end": "17:00",
+        "productId": "mwtlmmbq-15e96e28afba"
+      },
+      {
+        "dayOfWeek": "monday",
+        "start": "17:00",
+        "end": "20:00"
+      },
+      {
+        "dayOfWeek": "tuesday",
+        "start": "06:00",
+        "end": "10:00",
+        "productId": "mwtktb1z-918f33f9ba95"
+      },
+      {
+        "dayOfWeek": "tuesday",
+        "start": "10:00",
+        "end": "11:00",
+        "productId": "mwtlmmbq-15e96e28afba"
+      },
+      {
+        "dayOfWeek": "tuesday",
+        "start": "16:00",
+        "end": "17:00",
+        "productId": "mwtlmmbq-15e96e28afba"
+      },
+      {
+        "dayOfWeek": "tuesday",
+        "start": "17:00",
+        "end": "20:00"
+      },
+      {
+        "dayOfWeek": "wednesday",
+        "start": "06:00",
+        "end": "10:00",
+        "productId": "mwtktb1z-918f33f9ba95"
+      },
+      {
+        "dayOfWeek": "wednesday",
+        "start": "10:00",
+        "end": "11:00",
+        "productId": "mwtlmmbq-15e96e28afba"
+      },
+      {
+        "dayOfWeek": "wednesday",
+        "start": "16:00",
+        "end": "17:00",
+        "productId": "mwtlmmbq-15e96e28afba"
+      },
+      {
+        "dayOfWeek": "wednesday",
+        "start": "17:00",
+        "end": "20:00"
+      },
+      {
+        "dayOfWeek": "thursday",
+        "start": "06:00",
+        "end": "10:00",
+        "productId": "mwtktb1z-918f33f9ba95"
+      },
+      {
+        "dayOfWeek": "thursday",
+        "start": "10:00",
+        "end": "11:00",
+        "productId": "mwtlmmbq-15e96e28afba"
+      },
+      {
+        "dayOfWeek": "thursday",
+        "start": "16:00",
+        "end": "17:00",
+        "productId": "mwtlmmbq-15e96e28afba"
+      },
+      {
+        "dayOfWeek": "thursday",
+        "start": "17:00",
+        "end": "20:00"
+      },
+      {
+        "dayOfWeek": "friday",
+        "start": "06:00",
+        "end": "10:00",
+        "productId": "mwtktb1z-918f33f9ba95"
+      },
+      {
+        "dayOfWeek": "friday",
+        "start": "10:00",
+        "end": "11:00",
+        "productId": "mwtlmmbq-15e96e28afba"
+      }
+    ]
+  },
+  "addresses": [
+    {
+      "id": "mwtlwldy-badbfefc268d",
+      "label": null,
+      "line1": "Los Cedros, y y Pa. 3 de Noviembre, Cuenca",
+      "line2": "Rio Plaza",
+      "city": "Ecuador",
+      "region": "https://maps.app.goo.gl/BcmcBWMtVNtP4QZdA",
+      "postalCode": null,
+      "country": "EC",
+      "hours": []
+    }
+  ],
+  "products": [
+    {
+      "id": "mwtktb1z-918f33f9ba95",
+      "name": "Funcional",
+      "description": "Funciona disciplina fit",
+      "kind": "service",
+      "priceMinor": 5000,
+      "priceRules": null,
+      "pricingRules": "todos los planes required una inscripcion anual de 25 usd, con excepciones descritas en las relgas de cada plan",
+      "plans": [
+        {
+          "name": "Amonia",
+          "priceMinor": 5000,
+          "rules": "es un plan de dos dias a la semana, el precio es mensual, tiene una promocion trimestral de 150 USD que no require pago de inscripcion anul"
+        },
+        {
+          "name": "Equilibrio",
+          "priceMinor": 7400,
+          "rules": "es un plan de tres dias a la semana, el precio es mensual, tiene una promocion trimestral de 222 USD que no require pago de inscripcion anul"
+        },
+        {
+          "name": "Fortaleza",
+          "priceMinor": 9800,
+          "rules": "es un plan de cuatro dias a la semana, el precio es mensual, tiene una promocion trimestral de 234 USD que no require pago de inscripcion anul"
+        },
+        {
+          "name": "BalanceFit",
+          "priceMinor": 11700,
+          "rules": "es un plan de cinco dias a la semana, el precio es mensual, tiene una promocion trimestral de 261 USD que no require pago de inscripcion anul"
+        }
+      ],
+      "currency": "USD",
+      "imageUrls": []
+    },
+    {
+      "id": "mwtlmmbq-15e96e28afba",
+      "name": "Pilates",
+      "description": "Pilates disciplina fit",
+      "kind": "service",
+      "priceMinor": 6000,
+      "priceRules": null,
+      "pricingRules": "todos los planes required una inscripcion anual de 25 usd, con excepciones descritas en las relgas de cada plan",
+      "plans": [
+        {
+          "name": "Alinea",
+          "priceMinor": 6000,
+          "rules": "es un plan de un dia a la semana, el precio es mensual"
+        },
+        {
+          "name": "Centrica",
+          "priceMinor": 9000,
+          "rules": "es un plan de dos dias a la semana, el precio es mensual, tiene una promocion trimestral de 270 USD que no require pago de inscripcion anul"
+        },
+        {
+          "name": "Kontrola",
+          "priceMinor": 12000,
+          "rules": "es un plan de tres dias a la semana, el precio es mensual, tiene una promocion trimestral de 360 USD que no require pago de inscripcion anul"
+        },
+        {
+          "name": "Equilis",
+          "priceMinor": 15000,
+          "rules": "es un plan de cuatro dias a la semana, el precio es mensual, tiene una promocion trimestral de 360 USD que no require pago de inscripcion anul"
+        },
+        {
+          "name": "SinergiaFit",
+          "priceMinor": 18000,
+          "rules": "es un plan de cinco dias a la semana, el precio es mensual, tiene una promocion trimestral de 405 USD que no require pago de inscripcion anul"
+        }
+      ],
+      "currency": "USD",
+      "imageUrls": []
+    }
+  ],
+  "faqs": [
+    {
+      "id": "mwtnnu3n-38ec9e7efc60",
+      "question": "¿Cuál es la diferencia entre Pilates y entrenamiento funcional?",
+      "answer": "En Pilates trabajamos la fuerza, la estabilidad y la movilidad con movimientos controlados y atención a la respiración. En funcional entrenamos movimientos que usas en el día a día, como agacharte, empujar o cargar, y también podemos trabajar la resistencia. Si buscas mejorar el control de tus movimientos, Pilates es una buena opción. Si prefieres una clase más dinámica, puedes empezar por funcional.",
+      "sortOrder": 0
+    },
+    {
+      "id": "mwtnnuh0-e91065d31d57",
+      "question": "¿Pilates es fisioterapia?",
+      "answer": "Pilates es un método de ejercicio. Un fisioterapeuta puede usar algunos de sus ejercicios como parte de una rehabilitación. Si tienes dolor o una lesión, lo mejor es consultar con un fisioterapeuta antes de empezar una clase.",
+      "sortOrder": 1
+    },
+    {
+      "id": "mwtnnuy7-bde0937f82d2",
+      "question": "¿Pilates y funcional son para hombres o para mujeres?",
+      "answer": "¡Para ambos! Puedes empezar en cualquiera de las dos disciplinas, aunque sea tu primera vez. Lo ideal es comenzar con ejercicios acordes a tu nivel.",
+      "sortOrder": 2
+    },
+    {
+      "id": "mwtnnvae-3c446aab8d58",
+      "question": "¿Desde qué edad se puede hacer Pilates o funcional?",
+      "answer": "Niños y adolescentes a partir de los 13 años pueden hacer ejercicios adaptados a su edad, con supervisión y poniendo atención a la técnica.",
+      "sortOrder": 3
+    },
+    {
+      "id": "mwtnnvrn-de29621c8d77",
+      "question": "¿Con Pilates puedo ganar masa muscular?",
+      "answer": "Sí, Pilates puede ayudarte a ganar algo de masa muscular si los ejercicios te desafían y aumentas la resistencia con el tiempo. Si tu objetivo principal es aumentar el tamaño de tus músculos, te conviene priorizar un programa de fuerza con cargas progresivas.",
+      "sortOrder": 4
+    },
+    {
+      "id": "mwtnnwai-265522966b19",
+      "question": "Estoy embarazada, ¿puedo hacer Pilates?",
+      "answer": "Si tu embarazo va bien, Pilates adaptado al embarazo puede ser una opción. Antes de empezar o retomar las clases, consúltalo con tu obstetra. Si te da luz verde, avisa a tu instructora de cuántas semanas estás para que pueda adaptar los ejercicios.",
+      "sortOrder": 5
+    },
+    {
+      "id": "mwu1vahr-1c4d282d453d",
+      "question": "¿Puedo haccer un clase de prueba?",
+      "answer": "En funcional si pueden hacer clases de prueba, en Pilates no contamos con clases de prueba, la clasa individual tiene un costo de 15 USD",
+      "sortOrder": 6
+    },
+    {
+      "id": "mwu1vaw7-0268575c5ddd",
+      "question": "¿Que formas de  pasgo tienen?",
+      "answer": "Puesde hacer tus pagos mediante transferencia bancaria y efectivo",
+      "sortOrder": 7
+    },
+    {
+      "id": "mwu24es3-844a9c3ad83c",
+      "question": "¿Puedo asistir a diferentes horarios?",
+      "answer": "Si, puedes asistir a los diferentes horarios que tenemos para cada clase, con previo aviso al instructor para garantizar cupos, seimpre y cuando se cumpla con las dias asignados a tu plan",
+      "sortOrder": 8
+    },
+    {
+      "id": "mwu26l8w-42bb4bdcf47d",
+      "question": "¿Si falto algun dia puedo recurpera esa clase?",
+      "answer": "Si, puedes recupear la classe en cuaquiera de nuestros horarios, con previoa viso al instructor para garantizar cupos, siempre y cuando la clase a recurperar estre denrro tu mensualidad vigente.",
+      "sortOrder": 9
+    }
+  ]
+}

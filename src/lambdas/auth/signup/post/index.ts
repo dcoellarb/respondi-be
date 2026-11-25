@@ -2,10 +2,40 @@
  * @openapi
  * /auth/signup:
  *   post:
+ *     operationId: signup
  *     summary: Create an account with email and password
- *     description: Creates a Cognito user, marks the account as an email login, and returns tokens. Profile data beyond name and email is not stored yet.
- *     tags:
- *       - Auth
+ *     description: Creates a Cognito user and returns tokens. The business profile is created later with PUT /account.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password, firstName, lastName]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *         description: Account created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/AuthSession"
+ *       "400":
+ *         $ref: "#/components/responses/BadRequest"
+ *       "409":
+ *         $ref: "#/components/responses/Conflict"
+ *       "429":
+ *         $ref: "#/components/responses/TooManyRequests"
  */
 import {
   AdminDeleteUserCommand,

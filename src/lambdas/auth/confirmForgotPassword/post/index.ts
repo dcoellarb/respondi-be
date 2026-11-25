@@ -2,9 +2,35 @@
  * @openapi
  * /auth/confirm-forgot-password:
  *   post:
+ *     operationId: confirmForgotPassword
  *     summary: Set a new password with the emailed code
- *     tags:
- *       - Auth
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, confirmationCode, newPassword]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               confirmationCode:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *         description: Password updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Message"
+ *       "400":
+ *         $ref: "#/components/responses/BadRequest"
+ *       "429":
+ *         $ref: "#/components/responses/TooManyRequests"
  */
 import {
   AdminGetUserCommand,

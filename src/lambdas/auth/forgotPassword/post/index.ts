@@ -2,10 +2,32 @@
  * @openapi
  * /auth/forgot-password:
  *   post:
+ *     operationId: forgotPassword
  *     summary: Send a password reset code
  *     description: Google accounts are rejected so a reset code cannot replace Google sign-in. Unknown emails get the same success message.
- *     tags:
- *       - Auth
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       "200":
+ *         description: Reset requested
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Message"
+ *       "400":
+ *         $ref: "#/components/responses/BadRequest"
+ *       "429":
+ *         $ref: "#/components/responses/TooManyRequests"
  */
 import {
   AdminGetUserCommand,
