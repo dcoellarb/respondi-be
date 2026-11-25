@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 
 export const PROFILE_SK = "PROFILE";
 export const PHONE_SK = "ACCOUNT";
+export const CONSENT_SK = "CONSENT";
 export const ADDRESS_PREFIX = "ADDR#";
 export const PRODUCT_PREFIX = "PROD#";
 export const FAQ_PREFIX = "FAQ#";

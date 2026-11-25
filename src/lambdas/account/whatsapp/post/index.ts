@@ -192,11 +192,10 @@ export const handler = async (
         );
       }
 
-      if (profile.phone !== phoneE164 || !profile.whatsappBusinessInUse) {
+      if (profile.phone !== phoneE164) {
         await defaultStore().saveProfile(accountId, profile.email, {
           businessName: profile.businessName,
           phone: phoneE164,
-          whatsappBusinessInUse: true,
           contactName: profile.contactName,
           contactPhone: profile.contactPhone,
           scheduleMode: profile.scheduleMode,

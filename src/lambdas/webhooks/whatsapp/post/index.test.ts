@@ -294,6 +294,16 @@ describe("POST /webhooks/whatsapp", () => {
     expect(consumeConversationQuota).not.toHaveBeenCalled();
   });
 
+  it("skips signature verification for simulation requests with a real appSecret", async () => {
+    // Default beforeEach already configures a real appSecret (not REPLACE_ME).
+    // Sending isSimulation: true WITHOUT a valid HMAC should still succeed.
+    const response = await handler(
+      event(JSON.stringify({ ...payload, isSimulation: true })),
+    );
+    expect(response.statusCode).toBe(200);
+    expect(sendWhatsAppTextMessage).not.toHaveBeenCalled();
+  });
+
   it("clears prior conversation when startClean is true", async () => {
     (getWhatsAppWebhookSecrets as jest.Mock).mockResolvedValue({
       verifyToken: "REPLACE_ME",

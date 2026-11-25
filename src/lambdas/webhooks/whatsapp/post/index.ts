@@ -220,19 +220,23 @@ export const handler = async (
       return webhookError("Request body is required", 400);
     }
 
-    // Dummy CDK seed value: skip HMAC so Swagger/local probes work before Meta secrets are set.
-    if (appSecret !== "REPLACE_ME") {
-      const signature = headerValue(event, "X-Hub-Signature-256");
-      if (!verifyWhatsAppSignature(body, signature, appSecret)) {
-        return webhookError("Invalid WhatsApp webhook signature", 401);
-      }
-    }
-
     let parsed: unknown;
     try {
       parsed = JSON.parse(body);
     } catch {
       return webhookError("Invalid JSON in request body", 400);
+    }
+
+    // Simulation requests (Respondi test harness) skip HMAC — they never come from Meta
+    // and the frontend does not have the app secret. WAF rate limiting still applies.
+    const simulation = isWhatsAppSimulationPayload(parsed);
+
+    // Dummy CDK seed value: skip HMAC so Swagger/local probes work before Meta secrets are set.
+    if (!simulation && appSecret !== "REPLACE_ME") {
+      const signature = headerValue(event, "X-Hub-Signature-256");
+      if (!verifyWhatsAppSignature(body, signature, appSecret)) {
+        return webhookError("Invalid WhatsApp webhook signature", 401);
+      }
     }
 
     if (!isWhatsAppWebhookPayload(parsed)) {
@@ -280,7 +284,7 @@ export const handler = async (
       console.error("Failed to check WhatsApp reply block", error);
     }
 
-    const isSimulation = isWhatsAppSimulationPayload(parsed);
+    const isSimulation = simulation;
     const startClean = isWhatsAppStartCleanPayload(parsed);
 
     let conversation = null;

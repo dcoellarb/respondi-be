@@ -38,7 +38,6 @@ function event(body: unknown, pathParameters?: Record<string, string>): APIGatew
 const profileBody = {
   businessName: "Ada Gym",
   phone: "+1 555 123 4567",
-  whatsappBusinessInUse: true,
   contactName: "Ada Lovelace",
   scheduleMode: "per_address",
 };
@@ -61,7 +60,6 @@ describe("PUT /account", () => {
         email: "ada@example.com",
         businessName: "Ada Gym",
         phone: "+15551234567",
-        whatsappBusinessInUse: true,
         contactName: "Ada Lovelace",
         contactPhone: null,
         scheduleMode: "per_address",

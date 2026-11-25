@@ -24,7 +24,6 @@ export interface PublicProfile {
   email: string;
   businessName: string;
   phone: string;
-  whatsappBusinessInUse: boolean;
   contactName: string;
   contactPhone: string | null;
   scheduleMode: ScheduleMode;
@@ -42,7 +41,6 @@ export interface PublicProfile {
 export interface ProfileWrite {
   businessName: string;
   phone: string;
-  whatsappBusinessInUse: boolean;
   contactName: string;
   contactPhone: string | null;
   scheduleMode: ScheduleMode;
@@ -52,7 +50,6 @@ export interface ProfileWrite {
 export interface ProfilePatch {
   businessName?: string;
   phone?: string;
-  whatsappBusinessInUse?: boolean;
   contactName?: string;
   contactPhone?: string | null;
   scheduleMode?: ScheduleMode;

@@ -93,7 +93,6 @@ describe("POST /account/whatsapp/connect", () => {
       email: "owner@example.com",
       businessName: "CircuitFit",
       phone: "+15551110000",
-      whatsappBusinessInUse: false,
       contactName: "Owner",
       contactPhone: null,
       scheduleMode: "business",
@@ -156,7 +155,6 @@ describe("POST /account/whatsapp/connect", () => {
       "owner@example.com",
       expect.objectContaining({
         phone: "+15551866905",
-        whatsappBusinessInUse: true,
       }),
     );
     expect(saveWhatsAppConnection).toHaveBeenCalledWith(

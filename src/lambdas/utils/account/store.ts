@@ -55,7 +55,8 @@ interface ProfileItem {
   email: string;
   businessName: string;
   phoneE164: string;
-  whatsappBusinessInUse: boolean;
+  /** @deprecated Kept for existing DynamoDB records; no longer written or returned. */
+  whatsappBusinessInUse?: boolean;
   contactName: string;
   contactPhoneE164: string | null;
   scheduleMode: ScheduleMode;
@@ -327,7 +328,6 @@ async function replaceProfile(
     ...current,
     businessName: input.businessName,
     phoneE164: input.phone,
-    whatsappBusinessInUse: input.whatsappBusinessInUse,
     contactName: input.contactName,
     contactPhoneE164: input.contactPhone,
     scheduleMode: input.scheduleMode,
@@ -341,12 +341,11 @@ async function replaceProfile(
         TableName: tableName,
         Key: { PK: current.PK, SK: current.SK },
         UpdateExpression:
-          "SET businessName = :businessName, phoneE164 = :phoneE164, whatsappBusinessInUse = :whatsappBusinessInUse, contactName = :contactName, contactPhoneE164 = :contactPhoneE164, scheduleMode = :scheduleMode, hours = :hours, updatedAt = :updatedAt",
+          "SET businessName = :businessName, phoneE164 = :phoneE164, contactName = :contactName, contactPhoneE164 = :contactPhoneE164, scheduleMode = :scheduleMode, hours = :hours, updatedAt = :updatedAt REMOVE whatsappBusinessInUse",
         ConditionExpression: "accountId = :accountId AND phoneE164 = :currentPhone",
         ExpressionAttributeValues: {
           ":businessName": next.businessName,
           ":phoneE164": next.phoneE164,
-          ":whatsappBusinessInUse": next.whatsappBusinessInUse,
           ":contactName": next.contactName,
           ":contactPhoneE164": next.contactPhoneE164,
           ":scheduleMode": next.scheduleMode,
@@ -963,7 +962,6 @@ function profileItem(
     email,
     businessName: input.businessName,
     phoneE164: input.phone,
-    whatsappBusinessInUse: input.whatsappBusinessInUse,
     contactName: input.contactName,
     contactPhoneE164: input.contactPhone,
     scheduleMode: input.scheduleMode,
@@ -1170,7 +1168,6 @@ function toPublicProfile(item: ProfileItem): PublicProfile {
     email: item.email,
     businessName: item.businessName,
     phone: item.phoneE164,
-    whatsappBusinessInUse: item.whatsappBusinessInUse,
     contactName: item.contactName,
     contactPhone: item.contactPhoneE164,
     scheduleMode: item.scheduleMode,

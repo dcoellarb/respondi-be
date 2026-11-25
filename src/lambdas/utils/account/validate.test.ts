@@ -11,7 +11,6 @@ const profile: PublicProfile = {
   email: "ada@example.com",
   businessName: "Ada Gym",
   phone: "+15551234567",
-  whatsappBusinessInUse: false,
   contactName: "Ada Lovelace",
   contactPhone: null,
   scheduleMode: "per_address",
@@ -33,7 +32,6 @@ describe("account validation", () => {
     const missing = parseProfileWrite({
       businessName: "Ada Gym",
       phone: "+15551234567",
-      whatsappBusinessInUse: true,
       contactName: "Ada Lovelace",
       scheduleMode: "business",
     });
@@ -42,7 +40,6 @@ describe("account validation", () => {
     const overlap = parseProfileWrite({
       businessName: "Ada Gym",
       phone: "+1 555 123 4567",
-      whatsappBusinessInUse: true,
       contactName: "Ada Lovelace",
       scheduleMode: "business",
       hours: [
@@ -58,7 +55,6 @@ describe("account validation", () => {
     const parsed = parseProfileWrite({
       businessName: "Ada Gym",
       phone: "+15551234567",
-      whatsappBusinessInUse: false,
       contactName: "Ada Lovelace",
       scheduleMode: "business",
       hours: [
@@ -71,7 +67,6 @@ describe("account validation", () => {
     const onProfile = parseProfileWrite({
       businessName: "Ada Gym",
       phone: "+15551234567",
-      whatsappBusinessInUse: false,
       contactName: "Ada Lovelace",
       scheduleMode: "per_address",
       hours: [{ dayOfWeek: "monday", start: "09:00", end: "17:00" }],
@@ -84,7 +79,6 @@ describe("account validation", () => {
     const withId = parseProfileWrite({
       businessName: "Ada Gym",
       phone: "+15551234567",
-      whatsappBusinessInUse: false,
       contactName: "Ada Lovelace",
       scheduleMode: "business",
       hours: [
@@ -113,7 +107,6 @@ describe("account validation", () => {
     const emptyId = parseProfileWrite({
       businessName: "Ada Gym",
       phone: "+15551234567",
-      whatsappBusinessInUse: false,
       contactName: "Ada Lovelace",
       scheduleMode: "business",
       hours: [{ dayOfWeek: "monday", start: "09:00", end: "17:00", productId: "  " }],
@@ -126,7 +119,6 @@ describe("account validation", () => {
     const parsed = parseProfileWrite({
       businessName: "Ada Gym",
       phone: "+15551234567",
-      whatsappBusinessInUse: true,
       contactName: "Ada Lovelace",
       scheduleMode: "per_address",
       email: "other@example.com",

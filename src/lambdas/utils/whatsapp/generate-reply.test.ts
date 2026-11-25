@@ -164,7 +164,7 @@ describe("generateWhatsAppReply", () => {
         email: "ada@example.com",
         businessName: "Ada Gym",
         phone: "+15551234567",
-        whatsappBusinessInUse: true,
+
         contactName: "Ada",
         contactPhone: null,
         scheduleMode: "business" as const,
@@ -284,7 +284,7 @@ describe("generateWhatsAppReply", () => {
           email: "ada@example.com",
           businessName: "Ada Gym",
           phone: "+15551234567",
-          whatsappBusinessInUse: true,
+  
           contactName: "Ada",
           contactPhone: null,
           scheduleMode: "business",

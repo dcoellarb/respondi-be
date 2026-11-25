@@ -12,7 +12,7 @@
  *         application/json:
  *           schema:
  *             type: object
- *             required: [email, password, firstName, lastName]
+ *             required: [email, password, firstName, lastName, acceptedTerms, acceptedTermsVersion]
  *             properties:
  *               email:
  *                 type: string
@@ -23,6 +23,16 @@
  *                 type: string
  *               lastName:
  *                 type: string
+ *               acceptedTerms:
+ *                 type: boolean
+ *                 description: User explicitly accepted the Terms & Conditions. Must be true.
+ *               acceptedTermsVersion:
+ *                 type: string
+ *                 description: Version identifier of the T&C the user accepted (e.g. "1.0").
+ *               marketing:
+ *                 type: boolean
+ *                 description: User opted in to receive marketing communications. Defaults to false.
+ *                 default: false
  *     responses:
  *       "200":
  *         description: Account created
@@ -44,6 +54,7 @@ import {
   InitiateAuthCommand,
   SignUpCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import {
   cognitoIdFromIdToken,
@@ -56,6 +67,8 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from "../../../utils/http/response";
+import { getDocumentClient } from "../../../utils/dynamo/client";
+import { accountPk, CONSENT_SK } from "../../../utils/account/keys";
 
 const cognitoClient = new CognitoIdentityProviderClient({});
 
@@ -97,6 +110,8 @@ export const handler = async (
     const password = raw.password;
     const firstNameRaw = raw.firstName;
     const lastNameRaw = raw.lastName;
+
+    // --- Validate original required string fields ---
     if (
       !isNonEmptyString(emailRaw) ||
       !isNonEmptyString(password) ||
@@ -111,6 +126,29 @@ export const handler = async (
         missingFields: missing,
       });
     }
+
+    // --- Validate acceptedTerms ---
+    if (raw.acceptedTerms !== true) {
+      return createErrorResponse(
+        "User must accept terms and conditions",
+        400,
+        { code: "TERMS_NOT_ACCEPTED" },
+      );
+    }
+
+    // --- Validate acceptedTermsVersion ---
+    if (!isNonEmptyString(raw.acceptedTermsVersion)) {
+      return createErrorResponse(
+        "acceptedTermsVersion is required",
+        400,
+        { code: "MISSING_REQUIRED_FIELDS", missingFields: ["acceptedTermsVersion"] },
+      );
+    }
+    const acceptedTermsVersion = (raw.acceptedTermsVersion as string).trim();
+
+    // --- marketing defaults to false ---
+    const marketing =
+      raw.marketing === true ? true : false;
 
     const email = normalizeEmail(emailRaw);
     const firstName = firstNameRaw.trim();
@@ -192,13 +230,37 @@ export const handler = async (
     }
 
     const tokens = tokenResult(authResponse);
+    const cognitoId = cognitoIdFromIdToken(tokens.IdToken);
+
+    // --- Persist consent record for audit / GDPR compliance ---
+    const tableName = requireEnv("TABLE_NAME");
+    const now = new Date().toISOString();
+    await getDocumentClient().send(
+      new PutCommand({
+        TableName: tableName,
+        Item: {
+          PK: accountPk(cognitoId),
+          SK: CONSENT_SK,
+          entityType: "CONSENT",
+          accountId: cognitoId,
+          acceptedTerms: true,
+          acceptedTermsVersion,
+          acceptedTermsAt: now,
+          marketing,
+          marketingOptInAt: marketing ? now : undefined,
+          createdAt: now,
+          updatedAt: now,
+        },
+      }),
+    );
+
     createdEmail = undefined;
 
     return createSuccessResponse({
       message: "User signed up successfully",
       authResponse: tokens,
       user: {
-        cognitoId: cognitoIdFromIdToken(tokens.IdToken),
+        cognitoId,
         email,
         firstName,
         lastName,

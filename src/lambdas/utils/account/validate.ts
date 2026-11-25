@@ -32,6 +32,7 @@ const MAX_RULES = 2000;
 const PROFILE_FIELDS = [
   "businessName",
   "phone",
+  // Kept so old clients sending it are not rejected by unknownFields; the value is ignored.
   "whatsappBusinessInUse",
   "contactName",
   "contactPhone",
@@ -77,11 +78,6 @@ export function parseProfileWrite(raw: Record<string, unknown>): Parsed<ProfileW
   if (!businessName.ok) return businessName;
   const phone = parsePhone(raw.phone);
   if (!phone.ok) return phone;
-  const whatsappBusinessInUse = parseBoolean(
-    raw.whatsappBusinessInUse,
-    "whatsappBusinessInUse",
-  );
-  if (!whatsappBusinessInUse.ok) return whatsappBusinessInUse;
   const contactName = parseRequiredText(raw.contactName, "contactName", 120);
   if (!contactName.ok) return contactName;
   const contactPhone = parseOptionalPhone(raw.contactPhone, true);
@@ -96,7 +92,6 @@ export function parseProfileWrite(raw: Record<string, unknown>): Parsed<ProfileW
     value: {
       businessName: businessName.value,
       phone: phone.value,
-      whatsappBusinessInUse: whatsappBusinessInUse.value,
       contactName: contactName.value,
       contactPhone: contactPhone.value,
       scheduleMode: scheduleMode.value,
@@ -120,11 +115,6 @@ export function parseProfilePatch(raw: Record<string, unknown>): Parsed<ProfileP
     const phone = parsePhone(raw.phone);
     if (!phone.ok) return phone;
     patch.phone = phone.value;
-  }
-  if (has(raw, "whatsappBusinessInUse")) {
-    const flag = parseBoolean(raw.whatsappBusinessInUse, "whatsappBusinessInUse");
-    if (!flag.ok) return flag;
-    patch.whatsappBusinessInUse = flag.value;
   }
   if (has(raw, "contactName")) {
     const contactName = parseRequiredText(raw.contactName, "contactName", 120);
@@ -179,8 +169,6 @@ export function applyProfilePatch(
     value: {
       businessName: patch.businessName ?? current.businessName,
       phone: patch.phone ?? current.phone,
-      whatsappBusinessInUse:
-        patch.whatsappBusinessInUse ?? current.whatsappBusinessInUse,
       contactName: patch.contactName ?? current.contactName,
       contactPhone:
         patch.contactPhone !== undefined ? patch.contactPhone : current.contactPhone,

@@ -122,7 +122,6 @@ components:
         - email
         - businessName
         - phone
-        - whatsappBusinessInUse
         - contactName
         - scheduleMode
         - hours
@@ -148,8 +147,6 @@ components:
           type: string
           description: E.164 business number used to match incoming WhatsApp messages.
           example: "+15551234567"
-        whatsappBusinessInUse:
-          type: boolean
         contactName:
           type: string
           maxLength: 120
@@ -189,7 +186,7 @@ components:
           format: date-time
     ProfileWrite:
       type: object
-      required: [businessName, phone, whatsappBusinessInUse, contactName, scheduleMode]
+      required: [businessName, phone, contactName, scheduleMode]
       description: Email and account id are not accepted. When scheduleMode is business, hours is required. When it is per_address, hours must be omitted or empty.
       properties:
         businessName:
@@ -198,8 +195,6 @@ components:
         phone:
           type: string
           example: "+15551234567"
-        whatsappBusinessInUse:
-          type: boolean
         contactName:
           type: string
           maxLength: 120
@@ -224,8 +219,6 @@ components:
           maxLength: 120
         phone:
           type: string
-        whatsappBusinessInUse:
-          type: boolean
         contactName:
           type: string
           maxLength: 120

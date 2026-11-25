@@ -71,7 +71,10 @@ export class RespondiBeStack extends cdk.Stack {
       },
     });
 
-    const signup = createFn(this, "SignupFunction", authLambdaProps, "auth/signup/post");
+    const signup = createFn(this, "SignupFunction", authLambdaProps, "auth/signup/post", {
+      environment: { TABLE_NAME: accountTable.table.tableName },
+    });
+    accountTable.table.grantWriteData(signup);
     const signin = createFn(this, "SigninFunction", authLambdaProps, "auth/signin/post");
     const signout = createFn(this, "SignoutFunction", authLambdaProps, "auth/signout/post");
     const refresh = createFn(

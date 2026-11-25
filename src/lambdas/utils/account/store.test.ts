@@ -14,7 +14,6 @@ import { ProductWrite, ProfileWrite } from "./types";
 const business: ProfileWrite = {
   businessName: "Ada Gym",
   phone: "+15551234567",
-  whatsappBusinessInUse: true,
   contactName: "Ada Lovelace",
   contactPhone: null,
   scheduleMode: "business",
@@ -30,7 +29,6 @@ function profileItem(overrides: Record<string, unknown> = {}) {
     email: "ada@example.com",
     businessName: "Ada Gym",
     phoneE164: "+15551234567",
-    whatsappBusinessInUse: true,
     contactName: "Ada Lovelace",
     contactPhoneE164: null,
     scheduleMode: "business",

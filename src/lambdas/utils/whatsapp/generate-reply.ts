@@ -359,7 +359,6 @@ function compactProfile(
   const out: Record<string, unknown> = {
     businessName: profile.businessName,
     phone: profile.phone,
-    whatsappBusinessInUse: profile.whatsappBusinessInUse,
     contactName: profile.contactName,
     contactPhone: profile.contactPhone,
     scheduleMode: profile.scheduleMode,
