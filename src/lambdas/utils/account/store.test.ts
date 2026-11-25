@@ -355,6 +355,9 @@ describe("account store", () => {
         stored = (command as PutCommand).input.Item as Record<string, unknown>;
         return {};
       }
+      if (command instanceof QueryCommand) {
+        return { Items: [], Count: 0 };
+      }
       throw new Error(`unexpected ${(command as { constructor: { name: string } }).constructor.name}`);
     });
     const store = createStore({ send } as unknown as DynamoDBDocumentClient, "RespondiBe-test");

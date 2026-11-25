@@ -18,6 +18,7 @@ import {
 } from "./errors";
 import {
   ADDRESS_PREFIX,
+  DEFAULT_CAPS,
   FAQ_PREFIX,
   MAX_ADDRESSES,
   MAX_CONVERSATIONS_PER_MONTH,
@@ -36,6 +37,7 @@ import {
 import {
   AccountPlan,
   AddressWrite,
+  CapValue,
   FaqWrite,
   MessageCount,
   ProductPage,
@@ -452,6 +454,15 @@ async function listAddresses(
     .sort((left, right) => left.id.localeCompare(right.id));
 }
 
+/** Resolve a plan cap, falling back to the default (basic) when no plan is set. */
+function resolveCap(
+  plan: AccountPlan | undefined,
+  field: keyof typeof DEFAULT_CAPS,
+): CapValue {
+  if (!plan) return DEFAULT_CAPS[field];
+  return plan[field];
+}
+
 async function createAddress(
   doc: DynamoDBDocumentClient,
   tableName: string,
@@ -464,10 +475,11 @@ async function createAddress(
     hours: sanitizeHoursForStorage(input.hours),
   };
   await assertHourProductIds(doc, tableName, accountId, sanitized.hours);
+  const cap = resolveCap(profile.plan, "addressesCap");
   const existing = await queryPrefix(doc, tableName, accountId, ADDRESS_PREFIX);
-  if (existing.length >= MAX_ADDRESSES) {
+  if (cap !== "unlimited" && existing.length >= cap) {
     throw new AccountError(
-      `An account can have at most ${MAX_ADDRESSES} addresses`,
+      `Address limit reached (${existing.length}/${cap})`,
       409,
       "ADDRESS_LIMIT",
     );
@@ -597,7 +609,25 @@ async function createProduct(
   accountId: string,
   input: ProductWrite,
 ): Promise<PublicProduct> {
-  await requireProfileItem(doc, tableName, accountId);
+  const profile = await requireProfileItem(doc, tableName, accountId);
+  const kind = input.kind ?? "service";
+  const capField = kind === "product" ? "productsCap" : "servicesCap";
+  const cap = resolveCap(profile.plan, capField);
+
+  if (cap !== "unlimited") {
+    const existing = await queryPrefix(doc, tableName, accountId, PRODUCT_PREFIX);
+    const count = existing.filter(
+      (item) => (item.kind as string | undefined ?? "service") === kind,
+    ).length;
+    if (count >= cap) {
+      throw new AccountError(
+        `${kind === "product" ? "Product" : "Service"} limit reached (${count}/${cap})`,
+        409,
+        kind === "product" ? "PRODUCT_LIMIT" : "SERVICE_LIMIT",
+      );
+    }
+  }
+
   const timestamp = nowIso();
   const item = productItem(accountId, createEntityId(), input, timestamp, timestamp);
   await doc.send(new PutCommand({ TableName: tableName, Item: item }));
@@ -678,8 +708,10 @@ async function createFaq(
   input: FaqWrite,
 ): Promise<PublicFaq> {
   const profile = await requireProfileItem(doc, tableName, accountId);
-  if (profile.faqCount >= MAX_FAQS) {
-    throw new AccountError("An account can have at most 10 FAQs", 409, "FAQ_LIMIT");
+  const faqCap = resolveCap(profile.plan, "faqsCap");
+  const maxFaqs = faqCap === "unlimited" ? MAX_FAQS : Math.min(faqCap, MAX_FAQS);
+  if (profile.faqCount >= maxFaqs) {
+    throw new AccountError(`FAQ limit reached (${profile.faqCount}/${maxFaqs})`, 409, "FAQ_LIMIT");
   }
   const timestamp = nowIso();
   const item = faqItem(
@@ -707,7 +739,7 @@ async function createFaq(
                 ":updatedAt": timestamp,
                 ":accountId": accountId,
                 ":current": profile.faqCount,
-                ":max": MAX_FAQS,
+                ":max": maxFaqs,
               },
             },
           },
@@ -728,8 +760,8 @@ async function createFaq(
       if (!latest) {
         throw new AccountError("Account profile not found", 404, "ACCOUNT_NOT_FOUND");
       }
-      if (latest.faqCount >= MAX_FAQS) {
-        throw new AccountError("An account can have at most 10 FAQs", 409, "FAQ_LIMIT");
+      if (latest.faqCount >= maxFaqs) {
+        throw new AccountError(`FAQ limit reached (${latest.faqCount}/${maxFaqs})`, 409, "FAQ_LIMIT");
       }
       throw new AccountError("FAQ list changed, retry the request", 409, "FAQ_CONFLICT");
     }

@@ -25,6 +25,17 @@ export const PLANS_SK = "PLANS";
 
 export const MAX_FAQS = 10;
 export const MAX_ADDRESSES = 50;
+
+/**
+ * Default caps when no plan is set — matches basic plan.
+ * Used to gate create operations for addresses, products, services, and FAQs.
+ */
+export const DEFAULT_CAPS = {
+  addressesCap: 1,
+  servicesCap: 10,
+  productsCap: 0,
+  faqsCap: 10,
+} as const;
 export const MAX_PRODUCT_PAGE = 50;
 export const DEFAULT_PRODUCT_PAGE = 20;
 export const MAX_IMAGE_URLS = 8;
